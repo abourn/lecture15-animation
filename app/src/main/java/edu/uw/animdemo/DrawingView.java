@@ -8,6 +8,8 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.HashMap;
+
 /**
  * A basic custom view for drawing on.
  * @author Joel Ross
@@ -25,6 +27,7 @@ public class DrawingView extends View {
     private Paint whitePaint; //drawing variables (pre-defined for speed)
 
     public Ball ball; //public for easy access
+    public HashMap<Integer, Ball> touches;
 
     /**
      * We need to override all the constructors, since we don't know which will be called
@@ -46,7 +49,7 @@ public class DrawingView extends View {
         //set up drawing variables ahead of time
         whitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         whitePaint.setColor(Color.WHITE);
-
+        touches = new HashMap<Integer, Ball>();
     }
 
     /**
@@ -85,39 +88,66 @@ public class DrawingView extends View {
     {
         super.onDraw(canvas); //make sure to have the parent do any drawing it is supposed to!
 
-        ball.cx += ball.dx;
-        ball.cy += ball.dy;
+//        ball.cx += ball.dx;
+//        ball.cy += ball.dy;
+//
+//        if(ball.cx + ball.radius > viewWidth) { //left bound
+//            ball.cx = viewWidth - ball.radius;
+//            ball.dx *= -1;
+//        }
+//        else if(ball.cx - ball.radius < 0) { //right bound
+//            ball.cx = ball.radius;
+//            ball.dx *= -1;
+//        }
+//        else if(ball.cy + ball.radius > viewHeight) { //bottom bound
+//            ball.cy = viewHeight - ball.radius;
+//            ball.dy *= -1;
+//        }
+//        else if(ball.cy - ball.radius < 0) { //top bound
+//            ball.cy = ball.radius;
+//            ball.dy *= -1;
+//        }
+//
+//        canvas.drawColor(Color.rgb(51,10,111)); //purple out the background
+//
+//        canvas.drawCircle(ball.cx, ball.cy, ball.radius, whitePaint); //we can draw directly onto the canvas
+//
+//        for(int x=50; x<viewWidth-50; x++) { //most of the width
+//            for(int y=100; y<110; y++) { //10 pixels high
+//                bmp.setPixel(x, y, Color.YELLOW); //we can also set individual pixels in a Bitmap (like a BufferedImage)
+//            }
+//        }
+//        canvas.drawBitmap(bmp, 0, 0, null); //and then draw the BitMap onto the canvas.
+//        //Canvas bmc = new Canvas(bmp); //we can also make a canvas out of a Bitmap to draw on that (like fetching g2d from a BufferedImage) if we don't want to double-buffer
 
-        if(ball.cx + ball.radius > viewWidth) { //left bound
-            ball.cx = viewWidth - ball.radius;
-            ball.dx *= -1;
-        }
-        else if(ball.cx - ball.radius < 0) { //right bound
-            ball.cx = ball.radius;
-            ball.dx *= -1;
-        }
-        else if(ball.cy + ball.radius > viewHeight) { //bottom bound
-            ball.cy = viewHeight - ball.radius;
-            ball.dy *= -1;
-        }
-        else if(ball.cy - ball.radius < 0) { //top bound
-            ball.cy = ball.radius;
-            ball.dy *= -1;
+        for (Ball goldBall : touches.values()) {
+            Paint goldPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            goldPaint.setColor(Color.YELLOW);
+
+
+            canvas.drawCircle(goldBall.cx, goldBall.cy, ball.radius, goldPaint);
         }
 
-        canvas.drawColor(Color.rgb(51,10,111)); //purple out the background
 
-        canvas.drawCircle(ball.cx, ball.cy, ball.radius, whitePaint); //we can draw directly onto the canvas
 
-        for(int x=50; x<viewWidth-50; x++) { //most of the width
-            for(int y=100; y<110; y++) { //10 pixels high
-                bmp.setPixel(x, y, Color.YELLOW); //we can also set individual pixels in a Bitmap (like a BufferedImage)
-            }
-        }
-        canvas.drawBitmap(bmp, 0, 0, null); //and then draw the BitMap onto the canvas.
-        //Canvas bmc = new Canvas(bmp); //we can also make a canvas out of a Bitmap to draw on that (like fetching g2d from a BufferedImage) if we don't want to double-buffer
 
         invalidate(); // telling android "this view is bad, throw it out, redraw it"...We are telling android system to call onDraw again.
-
     }
+
+    // synchronized?  But not on different thread.
+    public void addTouch(int pointerId, float x, float y) {
+        touches.put(pointerId, new Ball(x, y, 15));
+    }
+
+    public void removeTouch(int pointerId) {
+        touches.remove(pointerId);
+    }
+
+    public void moveTouch(int pointerId, float x, float y) {
+        Ball updatedBall = touches.get(pointerId);
+        updatedBall.cx = x;
+        updatedBall.cy = y;
+        touches.put(pointerId, updatedBall);
+    }
+
 }

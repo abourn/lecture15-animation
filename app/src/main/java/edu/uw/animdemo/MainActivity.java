@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.v(TAG, event.toString());
+//        Log.v(TAG, event.toString());
 
         mDetector.onTouchEvent(event);
 
@@ -48,6 +48,11 @@ public class MainActivity extends AppCompatActivity {
 
         float x = event.getX();
         float y = event.getY() - getSupportActionBar().getHeight();
+
+        int pointerIndex = MotionEventCompat.getActionIndex(event);
+        int pointerId = MotionEventCompat.getPointerId(event, pointerIndex);
+
+        view.addTouch(pointerId, MotionEventCompat.getX(event, pointerIndex), MotionEventCompat.getY(event, pointerIndex));
 
         switch(action) {
             case (MotionEvent.ACTION_DOWN) : //put finger down
@@ -62,14 +67,24 @@ public class MainActivity extends AppCompatActivity {
                 AnimatorSet animSetXY = new AnimatorSet();
                 animSetXY.playTogether(animX, animY);
                 animSetXY.start();
-
+                return true;
+            case (MotionEvent.ACTION_POINTER_DOWN):
+                Log.v(TAG, "2 fingers");
                 return true;
             case (MotionEvent.ACTION_MOVE) : //move finger
                 //e.g., move ball
 //                view.ball.cx = x;
 //                view.ball.cy = y;
+                for (int i = 0; i <  MotionEventCompat.getPointerCount(event); i++) {
+                    int curr = MotionEventCompat.getPointerId(event, i);
+                    view.moveTouch(curr, MotionEventCompat.getX(event, curr), MotionEventCompat.getY(event, curr));
+                }
+
                 return true;
             case (MotionEvent.ACTION_UP) : //lift finger up
+                view.removeTouch(pointerId);
+            case (MotionEvent.ACTION_POINTER_UP):
+                view.removeTouch(pointerId);
             case (MotionEvent.ACTION_CANCEL) : //aborted gesture
             case (MotionEvent.ACTION_OUTSIDE) : //outside bounds
             default :
